@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dcs
+      POSTGRES_USER: dcs
+      POSTGRES_PASSWORD: dcs
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dcs -d dcs"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    volumes: [redis_data:/data]
+  storage-a:
+    build: ./storage-node
+    environment: {NODE_NAME: storage-a, STORAGE_PATH: /data}
+    volumes: [storage_a:/data]
+  storage-b:
+    build: ./storage-node
+    environment: {NODE_NAME: storage-b, STORAGE_PATH: /data}
+    volumes: [storage_b:/data]
+  storage-c:
+    build: ./storage-node
+    environment: {NODE_NAME: storage-c, STORAGE_PATH: /data}
+    volumes: [storage_c:/data]
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgresql+psycopg://dcs:dcs@postgres:5432/dcs
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: local-dev-change-before-deploy
+      STORAGE_NODES: http://storage-a:9000,http://storage-b:9000,http://storage-c:9000
+      REPLICATION_FACTOR: "2"
+      CHUNK_SIZE: "5242880"
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+      storage-a: {condition: service_started}
+      storage-b: {condition: service_started}
+      storage-c: {condition: service_started}
+    ports: ["8000:8000"]
+  frontend:
+    image: nginx:alpine
+    volumes: [./frontend:/usr/share/nginx/html:ro]
+    ports: ["8080:80"]
+    depends_on: [api]
+volumes:
+  postgres_data:
+  redis_data:
+  storage_a:
+  storage_b:
+  storage_c:

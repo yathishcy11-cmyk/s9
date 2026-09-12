@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071019">
+  <title>YCloud — Cloud Storage</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark">Y</div>
+        <div class="brand">Y<span>Cloud</span></div>
+      </div>
+
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <button class="nav-item active" data-view="files" title="My Files">
+          <span class="nav-icon">▱</span><span>My Files</span>
+        </button>
+        <button class="nav-item" data-view="versions" title="Versions">
+          <span class="nav-icon">◷</span><span>Versions</span>
+        </button>
+        <button class="nav-item" data-view="health" title="System Health">
+          <span class="nav-icon">⌁</span><span>System Health</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <nav class="secondary-nav" aria-label="Account navigation">
+        <button class="nav-item" data-view="account" title="Account">
+          <span class="nav-icon">○</span><span>Account</span>
+        </button>
+        <button class="nav-item" data-view="settings" title="Settings">
+          <span class="nav-icon">⚙</span><span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="storage-widget">
+        <div class="storage-head"><span>Storage Usage</span><strong id="storageText">0 B</strong></div>
+        <div class="storage-track"><div id="storageBar" class="storage-fill"></div></div>
+        <small>Supabase Storage</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Search files, folders..." autocomplete="off">
+        </div>
+        <div class="top-actions">
+          <button class="service-pill" data-view="health"><i></i>Storage A</button>
+          <button class="service-pill" data-view="health"><i></i>Storage B</button>
+          <button class="service-pill" data-view="health"><i></i>Database</button>
+          <button id="userMenuBtn" class="user-menu" aria-expanded="false">
+            <span id="avatar">Y</span><span id="userMenuName">Guest</span><b>⌄</b>
+          </button>
+          <div id="userMenu" class="user-popover hidden">
+            <button data-view="account">Account</button>
+            <button data-view="settings">Settings</button>
+            <button id="menuLogout">Sign out</button>
+          </div>
+        </div>
+      </header>
+
+      <section id="view-files" class="view active-view">
+        <div class="page-heading">
+          <div>
+            <h1>My Files</h1>
+            <p>Store, access and manage your files securely in the cloud.</p>
+          </div>
+          <button id="topUploadBtn" class="primary-btn">↥&nbsp; Upload File</button>
+        </div>
+
+        <section class="welcome-card panel">
+          <div class="profile-summary">
+            <div id="profileAvatar" class="profile-avatar">Y</div>
+            <div><span class="eyebrow">Welcome back,</span><h2 id="welcomeName">Guest</h2><p id="welcomeEmail">Sign in to manage your files</p></div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><span>▧</span><strong id="statFiles">0</strong><small>Files</small></div>
+            <div class="stat"><span>▤</span><strong id="statStorage">0 B</strong><small>Storage Used</small></div>
+            <div class="stat"><span>◷</span><strong id="statVersions">0</strong><small>Versions</small></div>
+          </div>
+        </section>
+
+        <section class="panel upload-panel">
+          <div id="dropZone" class="drop-zone" tabindex="0">
+            <div class="upload-icon">↥</div>
+            <h3>Drag &amp; drop files here</h3>
+            <p>or click to browse</p>
+            <small>Files are split into secure 5 MB chunks and stored with two managed replicas.</small>
+            <input id="fileInput" type="file" hidden>
+          </div>
+          <div id="uploadProgressWrap" class="upload-progress hidden">
+            <div class="progress-meta"><span id="uploadStatus">Preparing upload...</span><strong id="uploadPercent">0%</strong></div>
+            <div class="progress-track"><div id="uploadBar" class="progress-fill"></div></div>
+          </div>
+        </section>
+
+        <section class="files-section">
+          <div class="section-heading">
+            <h2>Files</h2>
+            <div class="file-controls">
+              <div class="segmented"><button id="gridBtn" class="selected">▦</button><button id="listBtn">☷</button></div>
+              <select id="sortSelect"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name</option><option value="size">Largest first</option></select>
+            </div>
+          </div>
+          <div id="filesContainer" class="file-grid"></div>
+        </section>
+      </section>
+
+      <section id="view-versions" class="view">
+        <div class="page-heading"><div><h1>Versions</h1><p>Browse file history and restore or download any stored version.</p></div><button id="refreshVersions" class="secondary-btn">↻ Refresh</button></div>
+        <div id="versionsContainer" class="version-list"></div>
+      </section>
+
+      <section id="view-health" class="view">
+        <div class="page-heading"><div><h1>System Health</h1><p>Monitor the storage, metadata and integrity services used by YCloud.</p></div><button id="runHealth" class="primary-btn">Run health check</button></div>
+        <div class="health-grid">
+          <div class="health-card"><div class="health-icon">◉</div><div><h3>Storage Replica A</h3><p>Managed object replica</p></div><span id="healthA" class="health-status checking">Checking</span></div>
+          <div class="health-card"><div class="health-icon">◉</div><div><h3>Storage Replica B</h3><p>Managed object replica</p></div><span id="healthB" class="health-status checking">Checking</span></div>
+          <div class="health-card"><div class="health-icon">▤</div><div><h3>Postgres Metadata</h3><p>Files, versions and chunks</p></div><span id="healthDb" class="health-status checking">Checking</span></div>
+          <div class="health-card"><div class="health-icon">✓</div><div><h3>Integrity Verification</h3><p>SHA-256 chunk checks</p></div><span class="health-status healthy">Enabled</span></div>
+        </div>
+        <div class="panel architecture-panel"><h2>Storage architecture</h2><div class="architecture-flow"><div>Browser</div><b>→</b><div>5 MB chunks</div><b>→</b><div>SHA-256</div><b>→</b><div>Replica A + B</div><b>→</b><div>Postgres metadata</div></div><div class="health-note">Replica A and B are managed copies inside the storage service. The application verifies each downloaded chunk against its stored SHA-256 checksum and can fall back to the second copy.</div></div>
+        <div class="panel activity-panel"><h2>Service activity</h2><div id="healthActivity" class="activity-list"><div class="empty-inline">Run a health check to inspect the current service state.</div></div></div>
+      </section>
+
+      <section id="view-account" class="view">
+        <div class="page-heading"><div><h1>Account</h1><p>Manage your YCloud identity and security.</p></div></div>
+        <div class="account-grid">
+          <div class="panel account-profile"><div id="accountAvatar" class="large-avatar">Y</div><h2 id="accountName">Guest</h2><p id="accountEmail">Not signed in</p><button id="accountLogout" class="secondary-btn">Sign out</button></div>
+          <div class="panel"><h2>Change password</h2><p class="muted">Update your account password securely.</p><div class="form-stack"><input id="newPassword" type="password" placeholder="New password"><input id="confirmPassword" type="password" placeholder="Confirm new password"><button id="changePassword" class="primary-btn">Update password</button></div><div id="passwordMsg" class="form-message"></div></div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="page-heading"><div><h1>Settings</h1><p>Customize how YCloud behaves on this device.</p></div></div>
+        <div class="settings-list">
+          <div class="panel setting-row"><div><h3>Compact file cards</h3><p>Use a denser layout when viewing many files.</p></div><label class="switch"><input id="compactToggle" type="checkbox"><span></span></label></div>
+          <div class="panel setting-row"><div><h3>Remember view mode</h3><p>Keep your grid or list preference on this device.</p></div><label class="switch"><input id="rememberToggle" type="checkbox" checked><span></span></label></div>
+          <div class="panel setting-row"><div><h3>Automatic refresh</h3><p>Refresh file metadata after uploads and deletions.</p></div><label class="switch"><input id="autoRefreshToggle" type="checkbox" checked><span></span></label></div>
+          <div class="panel setting-row"><div><h3>Local preferences</h3><p>Reset layout and sorting preferences stored in this browser.</p></div><button id="resetSettings" class="secondary-btn">Reset preferences</button></div>
+        </div>
+      </section>
+
+      <footer class="footer">YCloud · Secure cloud file storage</footer>
+    </main>
+  </div>
+
+  <div id="authModal" class="modal hidden"><div class="modal-card"><button class="modal-close" data-close="authModal">×</button><div class="brand modal-brand">Y<span>Cloud</span></div><h2 id="authTitle">Sign in</h2><p id="authSubtitle">Access your files securely.</p><div class="form-stack"><input id="authEmail" type="email" placeholder="Email address"><input id="authPassword" type="password" placeholder="Password"><button id="authSubmit" class="primary-btn">Sign in</button><button id="authSwitch" class="text-btn">Create an account</button></div><div id="authModalMsg" class="form-message"></div></div></div>
+
+  <div id="versionModal" class="modal hidden"><div class="modal-card wide"><button class="modal-close" data-close="versionModal">×</button><h2 id="versionModalTitle">File versions</h2><p class="muted">Select a stored version to download.</p><div id="versionModalBody"></div></div></div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
